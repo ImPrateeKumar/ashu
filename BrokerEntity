@@ -1,0 +1,97 @@
+package com.tmk.hibernate.annotations;
+
+import java.io.Serializable;
+
+
+import java.util.Set;
+
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+
+/**
+ * The persistent class for the broker_entity database table.
+ * 
+ * @author Muhammed Islam
+ * 
+ */
+@Entity
+@Table(name = "broker_entity")
+public class BrokerEntity implements Serializable {
+	private static final long serialVersionUID = 1L;
+
+	@Id
+	@Column(name = "broker_entity_id")
+	private Integer brokerEntityId;
+
+	@Column(name = "broker_entity_name")
+	private String brokerEntityName;
+
+	// Bi-directional Many-to-One association to BrokerGroup
+	@OneToMany(mappedBy = "brokerEntity", cascade = CascadeType.ALL)
+	private Set<BrokerGroup> brokerGroups;
+
+	public BrokerEntity() {
+	}
+
+	/**
+	 * Gets the Broker Entity ID
+	 * @return the broker entity ID
+	 */
+	public Integer getBrokerEntityId() {
+		return this.brokerEntityId;
+	}
+
+	/**
+	 * Sets the Broker Entity ID
+	 * @param brokerEntityId
+	 * 			the new broker entity id
+	 */
+	public void setBrokerEntityId(Integer brokerEntityId) {
+		this.brokerEntityId = brokerEntityId;
+	}
+
+	/**
+	 * Gets the Broker Entity Name
+	 * @return the broker entity name
+	 */
+	public String getBrokerEntityName() {
+		return this.brokerEntityName;
+	}
+
+	/**
+	 * Sets the Broker Entity Name
+	 * @param brokerEntityName
+	 * 			the new broker entity name
+	 */
+	public void setBrokerEntityName(String brokerEntityName) {
+		this.brokerEntityName = brokerEntityName;
+	}
+
+	/**
+	 * Gets Broker Groups information
+	 * @return the set of broker groups
+	 */
+	public Set<BrokerGroup> getBrokerGroups() {
+		return this.brokerGroups;
+	}
+
+	/**
+	 * Sets the Broker Groups
+	 * @param brokerGroups
+	 * 			the new Broker Groups Sets
+	 */
+	public void setBrokerGroups(Set<BrokerGroup> brokerGroups) {
+		this.brokerGroups = brokerGroups;
+	}
+
+	@Override
+	public String toString() {
+		return "Broker Entity Name: " + this.brokerEntityName
+				+ " Broker Groups: " + this.brokerGroups.toString();
+	}
+
+}
