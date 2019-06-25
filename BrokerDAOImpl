@@ -1,0 +1,346 @@
+package com.tmk.hibernate.daoimpl;
+
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Properties;
+import java.util.Set;
+
+import org.hibernate.Criteria;
+import org.hibernate.Hibernate;
+import org.hibernate.Session;
+import org.hibernate.Transaction;
+import org.hibernate.criterion.CriteriaSpecification;
+import org.hibernate.criterion.MatchMode;
+import org.hibernate.criterion.Projections;
+import org.hibernate.criterion.Restrictions;
+
+import com.tmk.hibernate.annotations.BrokerEntity;
+import com.tmk.hibernate.annotations.BrokerGroup;
+import com.tmk.hibernate.annotations.ConstructURL;
+import com.tmk.hibernate.dao.BrokerDAO;
+
+import static com.tmk.hibernate.constants.CommonConstants.*;
+
+/**
+ * Broker Data Access Object Implementation Class for data handling. Contains
+ * data retrieval methods queried by Rule Book Team Name, Location, Broker
+ * Entity Name. Also includes adding and updating records in the database.
+ * 
+ * @author Muhammed Islam
+ * 
+ */
+public class BrokerDAOImpl implements BrokerDAO {
+
+	String result = "";
+	String propFileName = "config.properties";
+	Properties prop = new Properties();
+
+	ConstructURL constructURL = new ConstructURL();
+
+	// Returns the first part of the Broker URL string from the config.properties
+	// file
+	public String getFirstURLPropertyValue() throws IOException {
+
+		result = constructURL.getFirstPropertyValue();
+
+		return result;
+	}
+
+	// Returns the second part of the Broker URL string from the config.properties
+	// file
+	public String getSecondPropertyValue() throws IOException {
+
+		result = constructURL.getSecondPropertyValue();
+
+		return result;
+	}
+
+	// Returns all Broker Groups with a specific RuleBook Team Name
+	@Override
+	public BrokerGroup findByRuleBookTeamName(String rbTeamName) {
+
+		Session session = HibernateUtil.getSessionFactory().openSession();
+
+		Criteria criteria = session.createCriteria(BrokerGroup.class);
+		criteria.add(Restrictions.eq("ruleBookId", rbTeamName));
+
+		BrokerGroup brokerGroup = (BrokerGroup) criteria.uniqueResult();
+
+		return brokerGroup;
+	}
+
+	// Returns all Broker Groups with a specific Broker Location
+	@Override
+	public List<BrokerGroup> findByLocation(String location) {
+		Session session = HibernateUtil.getSessionFactory().openSession();
+
+		Criteria criteria = session.createCriteria(BrokerGroup.class);
+		criteria.add(Restrictions.eq("brokerLocation", location));
+
+		@SuppressWarnings("unchecked")
+		List<BrokerGroup> brokerGroups = criteria.list();
+
+		return brokerGroups;
+	}
+
+	// Returns all Broker Entities with a specific Broker Entity Name
+	@Override
+	public BrokerEntity findByBrokerEntityName(String brokerEntityName) {
+
+		Session session = HibernateUtil.getSessionFactory().openSession();
+
+		Criteria criteria = session.createCriteria(BrokerEntity.class);
+		criteria.add(Restrictions.eq("brokerEntityName", brokerEntityName));
+
+		BrokerEntity brokerEntity = (BrokerEntity) criteria.uniqueResult();
+
+		// Force the initialisation of the Broker Entity object while Session is open
+		if (brokerEntity != null) {
+			Hibernate.initialize(brokerEntity);
+		} else {
+			brokerEntity = null;
+		}
+
+		return brokerEntity;
+	}
+
+	// Returns all Broker Group data and their corresponding Broker Entity details
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<BrokerGroup> getBrokers(String brokerName, String brokerLocation) {
+
+		Session session = HibernateUtil.getSessionFactory().openSession();
+
+		// Forming the criteria with an alias between the two model classes
+		Criteria criteria = session.createCriteria(BrokerGroup.class);
+		criteria.createAlias("brokerEntity", "be");
+
+		// Case insensitive search, matching anywhere in the names
+		criteria.add(Restrictions.ilike("brokerLocation", brokerLocation, MatchMode.ANYWHERE));
+		criteria.add(Restrictions.ilike("be.brokerEntityName", brokerName, MatchMode.ANYWHERE));
+		// Return distinct results
+		criteria.setResultTransformer(CriteriaSpecification.DISTINCT_ROOT_ENTITY).list();
+
+		List<BrokerGroup> lst = criteria.list();
+		return lst;
+	}
+
+	// Adds new Broker to database, using RuleBook Team Name, Broker Entity Name,
+	// Location and BIBA Type
+	@Override
+	public String addBroker(String rbTeamName, String bName, String location, String biba) {
+		Session session = HibernateUtil.getSessionFactory().openSession();
+		Transaction transaction = session.beginTransaction();
+
+		String message = "";
+		boolean locationExists = false;
+
+		// Get max broker_entity_id from broker_entity table
+		Criteria criteria = session.createCriteria(BrokerEntity.class);
+		criteria.setProjection(Projections.max("brokerEntityId"));
+		Integer maxId = (Integer) criteria.uniqueResult();
+
+		// Get max broker_group_id from broker_group table
+		Criteria criteria2 = session.createCriteria(BrokerGroup.class);
+		criteria2.setProjection(Projections.max("brokerGroupId"));
+		Integer maxId2 = (Integer) criteria2.uniqueResult();
+
+		if (biba.equals(BIBA_STRING)) {
+			biba = BIBA;
+		} else {
+			biba = NON_BIBA;
+		}
+		
+		BrokerEntity brokerEntity = findByBrokerEntityName(bName);
+		if (brokerEntity != null) {
+			Set<BrokerGroup> bgSet = brokerEntity.getBrokerGroups();
+
+			for (BrokerGroup bg : bgSet) {
+				if (bg.getBrokerLocation().equals(location)) {
+					locationExists = true;
+					break;
+				} else {
+					locationExists = false;
+				}
+			}
+		}
+		else {
+			locationExists = false;
+		}
+
+		// Validate that both inputs, Broker Entity Name & RuleBook Team Name,
+		// do not exist, before adding the details
+		if ((findByBrokerEntityName(bName)) == null && (findByRuleBookTeamName(rbTeamName) == null)) {
+
+			// Set broker details and store in a HashSet if both fields are null
+			BrokerEntity be = new BrokerEntity();
+			be.setBrokerEntityId(maxId + 1);
+			be.setBrokerEntityName(bName);
+
+			BrokerGroup bg = new BrokerGroup();
+			bg.setBrokerGroupId(maxId2 + 1);
+			bg.setRuleBookId(rbTeamName);
+			bg.setBrokerLocation(location);
+			bg.setRuleBook_Scheme(biba);
+			bg.setBrokerEntity(be);
+
+			Set<BrokerGroup> bgList = new HashSet<BrokerGroup>();
+			bgList.add(bg);
+
+			be.setBrokerGroups(bgList);
+
+			// Save these details to the database, close the session and return validation
+			session.save(bg);
+			session.save(be);
+			transaction.commit();
+			session.close();
+			message = NEW_BROKER_ADDED_MESSAGE;
+		}
+		// Add a new location to the broker
+		else {
+			if ((findByRuleBookTeamName(rbTeamName) == null) && (locationExists == false)) {
+				BrokerEntity be = findByBrokerEntityName(bName);
+				int bEntityId = be.getBrokerEntityId();
+
+				message = addBrokerLocation(rbTeamName, biba, bEntityId, location);
+			} else if (locationExists == true) {
+				message = LOCATION_ALREADY_EXISTS_FOR_BROKER;
+			} else {
+				message = RULEBOOK_TEAM_NAME_ALREADY_EXISTS_MESSAGE;
+			}
+		}
+
+		return message;
+
+	}
+
+	// Adds new Broker Location to existing broker record in database
+	@Override
+	public String addBrokerLocation(String ruleBookTeamName, String brokerType, Integer brokerEntityId,
+			String location) {
+		Session session = HibernateUtil.getSessionFactory().openSession();
+		Transaction transaction = session.beginTransaction();
+
+		String message = "";
+		boolean locationExists = false;
+
+		BrokerEntity brokerEntity = (BrokerEntity) session.get(BrokerEntity.class, brokerEntityId);
+		
+		// Check if location already exists for the mentioned broker record
+		Set<BrokerGroup> bgSet = brokerEntity.getBrokerGroups();
+		for (BrokerGroup bg : bgSet) {
+			if (bg.getBrokerLocation().equals(location)) {
+				locationExists = true;
+				break;
+			} else {
+				locationExists = false;
+			}
+		}
+
+		if ((brokerEntity != null)) {
+			// Get max broker_group_id from broker_group table
+			Criteria criteria2 = session.createCriteria(BrokerGroup.class);
+			criteria2.setProjection(Projections.max("brokerGroupId"));
+			Integer maxId2 = (Integer) criteria2.uniqueResult();
+
+			if (brokerType.equals(BIBA_STRING)) {
+				brokerType = BIBA;
+			} else {
+				brokerType = NON_BIBA;
+			}
+
+			// Check that RuleBook Team Name and Location don't exist before adding that new
+			// Broker Location
+			if ((findByRuleBookTeamName(ruleBookTeamName) == null) && (locationExists == false)) {
+				BrokerGroup bg = new BrokerGroup();
+				bg.setRuleBookId(ruleBookTeamName);
+				bg.setRuleBook_Scheme(brokerType);
+				bg.setBrokerLocation(location);
+				bg.setBrokerGroupId(maxId2 + 1);
+				bg.setBrokerEntity(brokerEntity);
+
+				session.save(bg);
+				transaction.commit();
+				session.close();
+
+				message = BROKER_LOCATION_ADDED_MESSAGE;
+
+			} else if (locationExists == true) {
+				message = LOCATION_ALREADY_EXISTS_FOR_BROKER;
+			} else {
+				message = RULEBOOK_TEAM_NAME_ALREADY_EXISTS_MESSAGE;
+			}
+		}
+
+		return message;
+	}
+
+	// Update existing broker's details, using RuleBook Team Name, Broker Entity
+	// Name,
+	// Location, BIBA Type and Broker Entity ID
+	@Override
+	public String updateBroker(String rbTeamName, String bName, String location, String biba, Integer entityId,
+			Integer groupID, String rbTeamNameTracker) {
+		Session session = HibernateUtil.getSessionFactory().openSession();
+		Transaction transaction = session.beginTransaction();
+
+		String message = "";
+		boolean locationExists = false;
+
+		BrokerGroup brokerGroup = (BrokerGroup) session.get(BrokerGroup.class, groupID);
+
+		BrokerEntity brokerEntity = (BrokerEntity) session.get(BrokerEntity.class, entityId);
+		
+		// Check if location already exists for the mentioned broker record
+		Set<BrokerGroup> bgSet = brokerEntity.getBrokerGroups();
+		for (BrokerGroup bg : bgSet) {
+			if (bg.getBrokerLocation().equals(location)) {
+				locationExists = true;
+				break;
+			} else {
+				locationExists = false;
+			}
+		}
+
+		String biba2 = brokerGroup.getRuleBook_Scheme();
+
+		if (biba.equals(BIBA_STRING)) {
+			biba2 = BIBA;
+		} else {
+			biba2 = NON_BIBA;
+		}
+
+		if ((findByRuleBookTeamName(rbTeamName) == null) && (locationExists == false)) {
+			brokerGroup.getBrokerEntity().setBrokerEntityName(bName);
+			brokerGroup.setRuleBookId(rbTeamName);
+			brokerGroup.setBrokerLocation(location);
+			brokerGroup.setRuleBook_Scheme(biba2);
+
+			session.update(brokerGroup);
+			transaction.commit();
+
+			message = BROKER_SUCCESSFULLY_UPDATED_MESSAGE;
+		}
+
+		else {
+			if (findByRuleBookTeamName(rbTeamName) == null) {
+				brokerGroup.getBrokerEntity().setBrokerEntityName(bName);
+				brokerGroup.setRuleBookId(rbTeamName);
+				brokerGroup.setBrokerLocation(location);
+				brokerGroup.setRuleBook_Scheme(biba2);
+
+				session.update(brokerGroup);
+				transaction.commit();
+
+				message = BROKER_SUCCESSFULLY_UPDATED_MESSAGE;
+			} else {
+				message = BROKER_LOCATION_OR_RB_TEAM_NAME_ALREADY_EXIST_MESSAGE;
+			}
+		}
+
+		session.close();
+		return message;
+	}
+
+}
