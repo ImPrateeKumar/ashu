@@ -1,0 +1,154 @@
+package com.tmk.hibernate.annotations;
+
+import java.io.Serializable;
+
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+
+/**
+ * The persistent class for the broker_group database table.
+ * 
+ * @author Muhammed Islam
+ * 
+ */
+@Entity
+@Table(name = "broker_group")
+public class BrokerGroup implements Serializable {
+	private static final long serialVersionUID = 1L;
+
+	@Id
+	@Column(name = "broker_group_id")
+	private Integer brokerGroupId;
+
+	@Column(name = "broker_group_name")
+	private String brokerLocation;
+
+	@Column(name = "rule_book_id")
+	private String ruleBookId;
+
+	@Column(name = "RuleBook_Scheme")
+	private String ruleBook_Scheme;
+
+	// Bi-directional Many-to-One association to BrokerEntity
+	@ManyToOne(cascade = CascadeType.ALL)
+	@JoinColumn(name = "broker_entity_fk")
+	private BrokerEntity brokerEntity;
+
+	public BrokerGroup() {
+	}
+
+	public BrokerGroup(Integer groupID, String location, String rb_id, String scheme, BrokerEntity be) {
+		brokerGroupId = groupID;
+		brokerLocation = location;
+		ruleBookId = rb_id;
+		ruleBook_Scheme = scheme;
+		brokerEntity = be;
+	}
+
+	/**
+	 * Gets the Broker Group ID
+	 * 
+	 * @return the broker group ID
+	 */
+	public Integer getBrokerGroupId() {
+		return this.brokerGroupId;
+	}
+
+	/**
+	 * Sets the Broker Group ID
+	 * 
+	 * @param brokerGroupId
+	 *            the new broker group id
+	 */
+	public void setBrokerGroupId(Integer brokerGroupId) {
+		this.brokerGroupId = brokerGroupId;
+	}
+
+	/**
+	 * Gets the Broker Location
+	 * 
+	 * @return the broker location
+	 */
+	public String getBrokerLocation() {
+		return this.brokerLocation;
+	}
+
+	/**
+	 * Sets the Broker Location
+	 * 
+	 * @param brokerLocation
+	 *            the new broker location
+	 */
+	public void setBrokerLocation(String brokerLocation) {
+		this.brokerLocation = brokerLocation;
+	}
+
+	/**
+	 * Gets the RuleBook ID
+	 * 
+	 * @return the RuleBook ID
+	 */
+	public String getRuleBookId() {
+		return this.ruleBookId;
+	}
+
+	/**
+	 * Sets the RuleBook ID
+	 * 
+	 * @param ruleBookId
+	 *            the new RuleBook ID
+	 */
+	public void setRuleBookId(String ruleBookId) {
+		this.ruleBookId = ruleBookId;
+	}
+
+	/**
+	 * Gets the RuleBook Scheme
+	 * 
+	 * @return the RuleBook Scheme
+	 */
+	public String getRuleBook_Scheme() {
+		return this.ruleBook_Scheme;
+	}
+
+	/**
+	 * Sets the RuleBook Scheme
+	 * 
+	 * @param ruleBook_Scheme
+	 *            the new RuleBook scheme
+	 */
+	public void setRuleBook_Scheme(String ruleBook_Scheme) {
+		this.ruleBook_Scheme = ruleBook_Scheme;
+	}
+
+	/**
+	 * Gets the Broker Entity
+	 * 
+	 * @return the broker entity
+	 */
+	public BrokerEntity getBrokerEntity() {
+		return this.brokerEntity;
+	}
+
+	/**
+	 * Sets the Broker Entity
+	 * 
+	 * @param brokerEntity
+	 *            the new broker entity
+	 */
+	public void setBrokerEntity(BrokerEntity brokerEntity) {
+		this.brokerEntity = brokerEntity;
+	}
+
+	@Override
+	public String toString() {
+		return "Broker Location: " + this.brokerLocation + " RuleBook ID: " + this.ruleBookId + " RuleBook Scheme: "
+				+ this.ruleBook_Scheme;
+	}
+
+}
