@@ -1,0 +1,85 @@
+package com.tmk.hibernate.annotations;
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
+import java.util.logging.Logger;
+
+import com.tmk.hibernate.daoimpl.HibernateUtil;
+
+/**
+ * Class for constructing the Broker URL, based on user-input values
+ * 
+ * @author muhammed.islam
+ *
+ */
+public class ConstructURL {
+
+	String result = "";
+	InputStream inputStream;
+	String propFileName = "config.properties";
+	Properties prop = new Properties();
+
+	BrokerGroup bg = new BrokerGroup();
+
+	public final static Logger logger = Logger.getLogger(HibernateUtil.class.getName());
+
+	// Returns the first part of the Broker URL string from the config.properties file
+	public String getFirstPropertyValue() throws IOException {
+
+		// Load config.properties file
+		try {
+			inputStream = getClass().getClassLoader().getResourceAsStream(propFileName);
+
+			if (inputStream != null) {
+				prop.load(inputStream);
+			} else {
+				throw new FileNotFoundException("Property file '" + propFileName + "' not found in the classpath");
+			}
+
+			// Get the property values from the config.properties file
+			String urlString = prop.getProperty("URL");
+
+			// Return first string part of the broker URL
+			result = urlString;
+
+		} catch (IOException e) {
+			logger.warning("Could not find file '" + propFileName + "'");
+		} finally {
+			inputStream.close();
+
+		}
+
+		return result;
+	}
+
+	// Returns the second part of the Broker URL string from the config.properties file
+	public String getSecondPropertyValue() throws IOException {
+
+		// Load config.properties file
+		try {
+			inputStream = getClass().getClassLoader().getResourceAsStream(propFileName);
+
+			if (inputStream != null) {
+				prop.load(inputStream);
+			} else {
+				throw new FileNotFoundException("Property file '" + propFileName + "' not found in the classpath");
+			}
+
+			// Get the property values from the config.properties file
+			String officeString = prop.getProperty("office");
+
+			// Return first string part of the broker URL
+			result = officeString;
+
+		} catch (IOException e) {
+			logger.warning("Could not find file '" + propFileName + "'");
+		} finally {
+			inputStream.close();
+		}
+
+		return result;
+	}
+
+}
