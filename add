@@ -1,0 +1,165 @@
+package com.tmk.hibernate.controller;
+
+import java.io.IOException;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import com.tmk.hibernate.annotations.BrokerGroup;
+import com.tmk.hibernate.dao.BrokerDAO;
+import com.tmk.hibernate.daoimpl.BrokerDAOImpl;
+
+import static com.tmk.hibernate.constants.CommonConstants.*;
+
+/**
+ * Servlet class for Getting and Posting data. Extends the DAO class's
+ * functionality. Calls the DAO Implementation class and retrieves database
+ * records, based on user inputs from the JSP pages' fields.
+ * 
+ * @author Muhammed Islam
+ */
+public class AddingServlet extends HttpServlet {
+
+	private static final long serialVersionUID = 1L;
+
+	BrokerDAO brokerDAO = new BrokerDAOImpl();
+	BrokerDAOImpl brokerEntityDaoImpl = new BrokerDAOImpl();
+
+	// Method for retrieving data from the database
+	@Override
+	protected void doGet(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+
+		// When parameter is showBroker, retrieve all values filtered by user inputs
+		if (request.getParameter("showBroker") != null) {
+
+			// Retrieve user-input values from JSP page
+			String brokerLocation = request.getParameter("location");
+			String brokerEntityName = request.getParameter("brokerName");
+
+			List<BrokerGroup> brokerEntitiesList = new ArrayList<BrokerGroup>();
+			brokerEntitiesList = brokerDAO.getBrokers(brokerEntityName, brokerLocation);
+
+			String brokerURLFirstPart = brokerEntityDaoImpl.getFirstURLPropertyValue();
+			String brokerURLSecondPart = brokerEntityDaoImpl.getSecondPropertyValue();
+
+			// Set attributes of variables that will be forwarded to the JSP pages
+			request.setAttribute("brokerEntitiesList", brokerEntitiesList);
+			request.setAttribute("brokerEntityName", brokerEntityName);
+			request.setAttribute("brokerLocation", brokerLocation);
+			request.setAttribute("brokerURLFirstPart", brokerURLFirstPart);
+			request.setAttribute("brokerURLSecondPart", brokerURLSecondPart);
+
+			HttpSession session = request.getSession();
+			session.setAttribute("searchEntityName", brokerEntityName);
+			session.setAttribute("searchLocation", brokerLocation);
+
+			RequestDispatcher rd = request.getRequestDispatcher("SearchBroker.jsp");
+			rd.forward(request, response);
+		}
+
+	}
+
+	// Method for saving data to the database
+	@Override
+	protected void doPost(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		boolean status = false;
+
+		// Using the current session to retrieve results of user's previous search,
+		// when going back to the Search page
+		if (request.getParameter("showBrokerEditPage") != null) {
+
+			String brokerLocation = (String) request.getSession().getAttribute("searchLocation");
+			String brokerEntityName = (String) request.getSession().getAttribute("searchEntityName");
+
+			List<BrokerGroup> brokerEntitiesList = new ArrayList<BrokerGroup>();
+			brokerEntitiesList = brokerDAO.getBrokers(brokerEntityName, brokerLocation);
+
+			String brokerURLFirstPart = brokerEntityDaoImpl.getFirstURLPropertyValue();
+			String brokerURLSecondPart = brokerEntityDaoImpl.getSecondPropertyValue();
+
+			request.setAttribute("brokerEntitiesList", brokerEntitiesList);
+			request.setAttribute("brokerEntityName", brokerEntityName);
+			request.setAttribute("brokerLocation", brokerLocation);
+			request.setAttribute("brokerURLFirstPart", brokerURLFirstPart);
+			request.setAttribute("brokerURLSecondPart", brokerURLSecondPart);
+
+			RequestDispatcher rd = request.getRequestDispatcher("SearchBroker.jsp");
+			rd.forward(request, response);
+		}
+
+		// When parameter is addBroker, save user input details to the database
+		if (request.getParameter("addBroker") != null) {
+
+			String ruleBookTeamName = request.getParameter("rulebookTeamName");
+			String brokerName = request.getParameter("brokerName");
+			String location = request.getParameter("brokerLocation");
+			String brokerType = request.getParameter("btype");
+
+			String message = brokerDAO.addBroker(ruleBookTeamName, brokerName, location, brokerType);
+			String url = "";
+
+			String brokerURLFirstPart = brokerEntityDaoImpl.getFirstURLPropertyValue();
+			String brokerURLSecondPart = brokerEntityDaoImpl.getSecondPropertyValue();
+
+			if (message == NEW_BROKER_ADDED_MESSAGE) {
+				url = "URL: " + brokerURLFirstPart + brokerName + brokerURLSecondPart + location;
+			} else {
+				url = "";
+			}
+
+			status = true;
+
+			request.setAttribute("status", status);
+			request.setAttribute("message", message);
+			request.setAttribute("url", url);
+
+			RequestDispatcher rd = request.getRequestDispatcher("AddBroker.jsp");
+			rd.forward(request, response);
+		}
+
+		// When parameter is updateBroker, check if the entered broker currently exists
+		// Update existing broker with user-inputed details
+		if (request.getParameter("updateBroker") != null) {
+
+			if (request.getParameter("brokerLocation2") == "") {
+				String ruleBookTeamName = request.getParameter("rulebookTeamName");
+				String brokerName = request.getParameter("brokerName");
+				String location = request.getParameter("brokerLocation");
+				String brokerType = request.getParameter("btype");
+				Integer brokerEntityId = Integer.parseInt(request.getParameter("brokerEntityId"));
+				Integer brokerGroupId = Integer.parseInt(request.getParameter("brokerGroupId"));
+				String ruleBookTeamNameTracker = request.getParameter("ruleBookTeamNameTracker");
+
+				// Form message string using update method
+				String message = brokerDAO.updateBroker(ruleBookTeamName, brokerName, location, brokerType,
+						brokerEntityId, brokerGroupId, ruleBookTeamNameTracker);
+				request.setAttribute("message", message);
+			}
+
+			// Otherwise add a new location to an existing broker record
+			else {
+				String ruleBookTeamName = request.getParameter("rulebookTeamName");
+				String brokerType = request.getParameter("btype");
+				Integer brokerEntityId = Integer.parseInt(request.getParameter("brokerEntityId"));
+				String newLocation = request.getParameter("brokerLocation2");
+
+				String message2 = brokerDAO.addBrokerLocation(ruleBookTeamName, brokerType, brokerEntityId,
+						newLocation);
+				request.setAttribute("message", message2);
+
+			}
+			RequestDispatcher rd = request.getRequestDispatcher("EditBroker.jsp");
+			rd.forward(request, response);
+		}
+	}
+
+}
