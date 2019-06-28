@@ -1,0 +1,86 @@
+UAS URL Creation Automation
+Current Workflow
+•	When user submits the BIBA Registration form, an automatic mail will be sent to BIBA.Registration@tokiomarinekiln.com, which will be of below format.
+
+
+ 
+•	This request is then routed to Lorega (third party) to perform the necessary verifications on the broker and once verified, the broker is required to agree to a TOBA.
+•	Once the broker signs the TOBA, mail will be sent to TMK Service desk from UAS TMK team at Lorega to add the broker in the RuleBook. Below is a sample of the email. On the created incident, 4 tasks will be logged; one among the four is for KAS Team.
+
+ 
+
+•	TMK SD completes their task, which is to successfully add the broker in the rulebook, KAS needs the below details to action on the task i.e., creating UAS prop form URL.
+
+1.	Broker name – (From the Broker Housing – in the first screen print)
+2.	Broker office – (From the Location– in the first screen print). Sometimes user may have entered the complete address instead of just the location, this case location needs to be confirmed with SD.
+3.	RulebookId – This needs to be shared by the service desk.
+4.	Of type BIBA or Non BIBA  - This needs to be shared by service desk.
+
+•	Once KAS gets above details, they prepare the insert scripts to insert broker related data into BROKER_ENTITY and BROKER_GROUP table present in the UAS_RULEBOOK database, which is hosted on Production AWS RDS (a01.ciq8d69zwzmg.eu-west-1.rds.amazonaws.com).
+
+•	KAS team registers a standard PROD CR with the scripts they have generated, with implementer from technical services team as per the ROTA.
+
+•	After the CR gets approved and once the scripts are executed successfully by the implementer on the UAS_RULEBOOK database on Production AWS RDS (a01.ciq8d69zwzmg.eu-west-1.rds.amazonaws.com), KAS team will browse the URL they have created to confirm that the URL is working fine.
+
+•	If the URL is working fine then KAS team will share the same UAS URL to the service desk team and KAS task can be closed.
+Assuming, KAS receive on an average of one request per week – one man day per each request – KAS would spend 4 man days a month for 4 requests, this needs to be factored with the number of requests received per month.
+Proposed solution
+As the steps mentioned above are the same and based on the understanding from working with such requests, we could propose the below solution to provide a form to SD team to accomplish the task done by KAS team. Using the form SD team can add new broker and create the URL for the newly added broker and also SD team can edit the details of the existing broker using RulebookId.
+Adding new broker :
+•	An admin screen would be provided to the users(SD) and the form to contains the four fields mentioned below.
+1.	Rulebook Id
+2.	Broker Name
+3.	Location
+4.	Broker type whether, BIBA or NON-BIBA
+•	Once broker is setup in the rulebook, users(SD) can enter the data in the above mentioned fields present on the admin screen.
+•	After entering the details, when user(SD) submits the admin form, the data entered will be inserted into Broker_Entity and Broker_Group tables and an automatic mail will be sent to the user(SD/TS) with UAS form URL (in the below format) included in it.
+
+https://uaspropform.onetmk.com/index.html?broker_name=<BrokerName>&broker_office=<Location>
+
+•	New AD group will be created and maintained by SD team. Only the users(SD team) who belongs to that AD group will be able to access the admin screen(to generate the URL). This can be achieved using the SAML authentication.
+Note: the above needs to be assessed.
+Logic backing the application when user submits the form,
+•	When user(SD team)  submits the form, initially it will check whether the broker name entered on the screen already exists in the BROKER_ENTITY table. If  it does not exists, the below scripts will be executed on the UAS_RULEBOOK database on Production AWS RDS(a01.ciq8d69zwzmg.eu-west-1.rds.amazonaws.com) to add the broker into BROKER_ENTITY and BROKER_GROUP tables,
+
+INSERT INTO BROKER_ENTITY VALUES(broker_entity_id,broker_entity_name);
+ 
+INSERT INTO BROKER_GROUP VALUES(broke_group_id,broker_entity_fk,broker_group_name,rule_book_id,RuleBook_Scheme);
+
+1.	Broker_entity_id  - Maximum value of  broker_entity_id column + 1.
+2.	Broker_entity_name -  Broker name entered on the screen.
+3.	Broker_group_id - Maximum value of  broker_group_id column + 1.
+4.	Broker_entity_fk - Broker_entity_id value.
+5.	Broker_group_name - Location entered on the screen.
+6.	Rule_book_id - This needs to be shared by service desk.
+7.	RuleBook_Scheme – 
+(a) If BIBA -  D0650594-C11C-4BA2-8A1B-F3397FED25E9 
+(b) If NON-BIBA - 2D5A8BB4-0B71-4542-8C96-F9A98CE5589E 
+
+For Ex,
+
+Let us assume
+Broker Name is Eversure Insurance
+Location is Guildford
+The last record sequence number in BROKER_ENTITY table is 19 and in BROKER_GROUP table last record sequence number is 20. 
+The broker is a NON-BIBA broker.
+
+INSERT INTO BROKER_ENTITY VALUES('20','Eversure Insurance');
+ 
+INSERT INTO BROKER_GROUP VALUES('21','20','Guildford','Eversure Insurance - Guildford', '2D5A8BB4-0B71-4542-8C96-F9A98CE5589E');
+
+8.	After the data gets successfully loaded into the above two tables, an automatic email will be sent to the user(SD/TS) which contains UAS URL.
+Please find the below sample URL for the above mentioned example,
+https://uaspropform.onetmk.com/index.html?broker_name=Eversure Insurance&broker_office=Guildford
+Searching for existing broker :
+•	In the admin screen provided, user(SD) can enter the RulebookId and when user clicks on the search button, it fetches the data related to the RulebookId entered and displays broker details on the screen in corresponding fields.
+•	User can edit the existing values and when user clicks on submit button the modified data will be stored into the database.
+Benefits
+1.	Quick turnaround time in servicing requests as the waiting time between SD/TS and KAS team would no longer be there.
+2.	Manual errors like redundant data, data errors, etc., that occur while entering the data into the database can be avoided.
+3.	On an average 4-8 man days effort per month would be saved. (Considering an average on one-two request per week)
+4.	Increase productivity of KAS team and Invest team’s time in addressing unique requests that are in queue.
+
+
+
+
+
