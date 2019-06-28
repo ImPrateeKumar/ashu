@@ -1,0 +1,102 @@
+package com.tmk.security.saml.web.domain;
+
+import java.util.ArrayList;
+import java.util.List;
+import org.springframework.security.core.GrantedAuthority;
+
+@org.springframework.stereotype.Component
+public class SAMLUser
+{
+  public SAMLUser() {}
+  
+  private String username = null;
+  private String givenName = null;
+  private String telephoneNumber = null;
+  private String name = null;
+  private String mail = null;
+  private String sn = null;
+  private String objectGUID = null;
+  private List<GrantedAuthority> authorities = new ArrayList();
+  private List<String> groups = new ArrayList();
+  
+  public List<GrantedAuthority> getAuthorities() {
+    return authorities;
+  }
+  
+  public void setAuthorities(List<GrantedAuthority> authorities) {
+    this.authorities = authorities;
+  }
+  
+  public String getUsername() {
+    return username;
+  }
+  
+  public void setUsername(String username) {
+    this.username = username;
+  }
+  
+  public String getGivenName() {
+    return givenName;
+  }
+  
+  public void setGivenName(String givenName) {
+    this.givenName = givenName;
+  }
+  
+  public String getTelephoneNumber() {
+    return telephoneNumber;
+  }
+  
+  public void setTelephoneNumber(String telephoneNumber) {
+    this.telephoneNumber = telephoneNumber;
+  }
+  
+  public String getName() {
+    return name;
+  }
+  
+  public void setName(String name) {
+    this.name = name;
+  }
+  
+  public String getMail() {
+    return mail;
+  }
+  
+  public void setMail(String mail) {
+    this.mail = mail;
+  }
+  
+  public String getSn() {
+    return sn;
+  }
+  
+  public void setSn(String sn) {
+    this.sn = sn;
+  }
+  
+  public String getObjectGUID() {
+    return objectGUID;
+  }
+  
+  public void setObjectGUID(String objectGUID) {
+    this.objectGUID = objectGUID;
+  }
+  
+  public List<String> getGroups() {
+    return groups;
+  }
+  
+  public void setGroups(List<String> groups) {
+    this.groups = groups;
+  }
+  
+  public String toString()
+  {
+    return 
+    
+
+
+      "SAMLUser [username=" + username + ", givenName=" + givenName + ", telephoneNumber=" + telephoneNumber + ", name=" + name + ", mail=" + mail + ", sn=" + sn + ", objectGUID=" + objectGUID + ", authorities=" + authorities + ", groups=" + groups + "]";
+  }
+}
