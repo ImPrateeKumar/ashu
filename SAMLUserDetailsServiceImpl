@@ -1,0 +1,86 @@
+package com.tmk.security.saml.web.core;
+
+import com.tmk.security.saml.web.domain.SAMLUser;
+import java.util.ArrayList;
+import java.util.List;
+import org.apache.log4j.Logger;
+import org.opensaml.saml2.core.Attribute;
+import org.opensaml.saml2.core.NameID;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.saml.SAMLCredential;
+import org.springframework.security.saml.userdetails.SAMLUserDetailsService;
+import org.springframework.stereotype.Service;
+
+
+@Service
+public class SAMLUserDetailsServiceImpl
+  implements SAMLUserDetailsService
+{
+  private static final Logger LOG = Logger.getLogger(SAMLUserDetailsServiceImpl.class);
+  
+
+
+
+
+  public SAMLUserDetailsServiceImpl() {}
+  
+
+
+
+
+  public Object loadUserBySAML(SAMLCredential credential)
+    throws UsernameNotFoundException
+  {
+    String userID = credential.getNameID().getValue();
+    
+    LOG.info(userID + " is logged in");
+    
+    LOG.info("GivenName:" + 
+      credential
+      .getAttributeAsString("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname"));
+    LOG.info("Extension:" + 
+      credential
+      .getAttributeAsString("Telephone Number"));
+    LOG.info("Name:" + 
+      credential.getAttributeAsString("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"));
+    LOG.info("Email:" + 
+      credential.getAttributeAsString("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"));
+    LOG.info("SurName:" + 
+      credential.getAttributeAsString("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname"));
+    LOG.info("GUID:" + 
+      credential.getAttributeAsString("GUID"));
+    
+    List<Attribute> attributes = credential.getAttributes();
+    List<String> groups = new ArrayList();
+    for (Attribute attr : attributes) {
+      String attributeName = attr.getName();
+      if (!attributeName.equals("http://schemas.xmlsoap.org/claims/Group"))
+      {
+        if (credential.getAttributeAsString(attributeName).equals("true")) {
+          groups.add(attributeName);
+        }
+      }
+    }
+    
+    LOG.info("Groups: " + groups.toString());
+    List<GrantedAuthority> authorities = new ArrayList();
+    Object authority = new SimpleGrantedAuthority("ROLE_USER");
+    authorities.add(authority);
+    
+    SAMLUser user = new SAMLUser();
+    user.setGivenName(credential
+      .getAttributeAsString("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname"));
+    user.setUsername(userID);
+    user.setName(credential.getAttributeAsString("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"));
+    user.setMail(credential
+      .getAttributeAsString("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"));
+    user.setSn(credential.getAttributeAsString("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname"));
+    user.setTelephoneNumber(credential
+      .getAttributeAsString("Telephone Number"));
+    user.setAuthorities(authorities);
+    user.setGroups(groups);
+    return user;
+  }
+}
