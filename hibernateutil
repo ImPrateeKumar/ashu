@@ -1,0 +1,67 @@
+package com.tmk.hibernate.daoimpl;
+
+import java.io.IOException;
+import java.util.Properties;
+import java.util.logging.Logger;
+
+import org.hibernate.HibernateException;
+import org.hibernate.SessionFactory;
+import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
+import org.hibernate.cfg.Configuration;
+import org.hibernate.service.ServiceRegistry;
+
+/**
+ * Hibernate Utilities class for creating and retrieving Session Factory
+ * objects.
+ * 
+ * @author muhammed.islam
+ *
+ */
+public class HibernateUtil {
+
+	private static SessionFactory sessionFactory = buildSessionFactory();
+
+	public final static Logger logger = Logger.getLogger(HibernateUtil.class.getName());
+
+	private static SessionFactory buildSessionFactory() {
+
+		// Create the SessionFactory from hibernate.cfg.xml file
+		Configuration configuration = new Configuration();
+		String fileName = "hibernate.properties";
+
+		// Load the hibernate.properties file
+		Properties properties = new Properties();
+		try {
+			properties.load(Thread.currentThread().getContextClassLoader().getResourceAsStream(fileName));
+		} catch (IOException e) {
+			logger.warning("Could not find file '" + fileName + "'");
+		}
+
+		configuration.configure("hibernate.cfg.xml");
+		configuration.setProperties(properties);
+
+		ServiceRegistry serviceRegistry = new StandardServiceRegistryBuilder()
+				.applySettings(configuration.getProperties()).build();
+
+		try {
+			sessionFactory = configuration.buildSessionFactory(serviceRegistry);
+
+		} catch (HibernateException | NullPointerException ex) {
+			// Log the exception, as it may be swallowed
+			logger.warning("SessionFactory creation failed " + ex);
+			throw new ExceptionInInitializerError(ex);
+		}
+
+		return sessionFactory;
+	}
+
+	public static SessionFactory getSessionFactory() {
+		return sessionFactory;
+	}
+
+	public static void shutdown() {
+		// Close caches and connection pools
+		getSessionFactory().close();
+	}
+
+}
