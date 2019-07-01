@@ -1,0 +1,22 @@
+package com.tmk.lpan.configuration;
+
+
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
+import org.springframework.web.servlet.config.annotation.DefaultServletHandlerConfigurer;
+import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport;
+
+@Configuration
+@EnableWebMvc
+@ComponentScan(basePackages = {"com.tmk.lpan","org.springframework.security.saml","com.tmk.saml","com.tmk.security"})
+@Import(com.tmk.saml.web.config.WebSecurityConfig.class)
+public class AppConfig extends WebMvcConfigurationSupport{
+
+	@Override
+	public void configureDefaultServletHandling(DefaultServletHandlerConfigurer configurer) {
+		configurer.enable();
+	}
+	
+}
