@@ -1,0 +1,185 @@
+package com.ntt.spring.controller;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.servlet.RequestDispatcher;
+import javax.servlet.Servlet;
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.omg.CORBA.Request;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.tmk.hibernate.annotations.BrokerGroup;
+import com.tmk.hibernate.dao.BrokerDao;
+import com.tmk.hibernate.daoimpl.BrokerDaoImpl;
+
+@Controller
+@RequestMapping("/adding")
+public class Adding1 {
+
+	// private static final long serialVersionUID = 1L;
+	@Autowired
+	private BrokerDao brokerDAO;
+	// BrokerDao brokerDAO = new BrokerDaoImpl();
+	@Autowired
+	private BrokerDaoImpl brokerEntityDaoImpl;
+	// BrokerDaoImpl brokerEntityDaoImpl = new BrokerDaoImpl();
+
+	// Method for retrieving data from database
+	@GetMapping("/getBroker")
+	public String getBroker(HttpServletRequest request,@RequestParam("location")String brokerLocation,@RequestParam("brokerName")String brokerEntityName){//@ModelAttribute BrokerGroup brokerGroup  )
+		ModelMap map = new ModelMap();
+		
+		//When parameter is showbroker, retrieve all values filtered by user input
+			
+			//Retrieve user-input value from JSP page
+			//String brokerLocation = brokerGroup.getParameter("location");
+			//String brokerEntityName = ent.getParameter("brokerName");
+			
+			List<BrokerGroup> brokerEntitiesList = new ArrayList<BrokerGroup>();
+			
+			if(!StringUtils.isEmpty(brokerLocation) && !StringUtils.isEmpty(brokerEntityName)) {
+			brokerEntitiesList = brokerDAO.getBrokers(brokerEntityName, brokerLocation);
+			}
+			
+			String brokerURLFirstPart = brokerEntityDaoImpl.getFirstURLPropertyValue();
+			String brokerURLSecondPart = brokerEntityDaoImpl.getSecondPropertyValue();
+			
+			//Set attributes of variable that will be forwarded to the JSP pages
+			
+			if(!CollectionUtils.isEmpty(brokerEntitiesList) && !StringUtils.isEmpty(brokerLocation) && !StringUtils.isEmpty(brokerEntityName) && !StringUtils.isEmpty(brokerURLFirstPart) && !StringUtils.isEmpty(brokerURLSecondPart)) {
+			map.addAttribute("brokerEntitiesList", brokerEntitiesList);
+			map.addAttribute("brokerEntityName", brokerEntityName);
+			map.addAttribute("brokerLocation", brokerLocation);
+			map.addAttribute("brokerURLFirstPart", brokerURLFirstPart);
+			map.addAttribute("brokerURLSecondPart", brokerURLSecondPart);
+			}
+			HttpSession session = request.getSession();
+			session.setAttribute("searchEntityName", brokerEntityName);
+			session.setAttribute("searchLocation", brokerLocation);
+			return "SearchBroker";
+			}
+
+	// method for saving data to the database
+
+	@PostMapping("/postBroker")
+	public String doPost(@RequestParam("searchLocation") String brokerLocation, @RequestParam("searchEntityName") String brokerEntityName,@RequestParam("rulebookTeamName") String rulebookTeamName,@RequestParam("brokerName") String brokerName,@RequestParam("brokerlocation") String brokerlocation,@RequestParam("btyte") String btyte)
+			{
+		ModelMap map = new ModelMap();
+		boolean status = false;
+		
+		//Using the current session to retrieve results of user's previous search,
+		//when going back to the Search page
+		
+			//String brokerLocation = (String) ent.getAttribute("searchLocation");
+			//String brokerEntityName = (String) ent.getAttribute("searchEntityName");
+			List<BrokerGroup> brokerEntitiesList = new ArrayList<BrokerGroup>();
+			
+			if(!StringUtils.isEmpty(brokerLocation) && !StringUtils.isEmpty(brokerEntityName)) {
+			brokerEntitiesList = brokerDAO.getBrokers(brokerEntityName, brokerLocation);
+			}
+			
+			String brokerURLFirstPart = brokerEntityDaoImpl.getFirstURLPropertyValue();
+			String brokerURLSecondPart = brokerEntityDaoImpl.getSecondPropertyValue();
+			
+			if(!CollectionUtils.isEmpty(brokerEntitiesList) && !StringUtils.isEmpty(brokerLocation) && !StringUtils.isEmpty(brokerEntityName) && !StringUtils.isEmpty(brokerURLFirstPart) && !StringUtils.isEmpty(brokerURLSecondPart)) {
+				map.addAttribute("brokerEntitiesList", brokerEntitiesList);
+				map.addAttribute("brokerEntityName", brokerEntityName);
+				map.addAttribute("brokerLocation", brokerLocation);
+				map.addAttribute("brokerURLFirstPart", brokerURLFirstPart);
+				map.addAttribute("brokerURLSecondPart", brokerURLSecondPart);
+				}
+			
+			return "SearchBroker";
+			}
+		//when parameter is addBroker, save user input details to the database
+			
+			String ruleBookTeamName = ent.getParameter("rulebookTeamName");
+			String brokerName = ent.getParameter("brokerName");
+			String location = ent.getParameter("brokerlocation");
+			String brokerType = ent.getParameter("btyte");
+			
+			String message = brokerDAO.addBroker(ruleBookTeamName, brokerName, location, brokerType);
+			String url = "";
+			
+			String brokerURLFirstPart = brokerEntityDaoImpl.getFirstURLPropertyValue();
+			String brokerURLSecondPart = brokerEntityDaoImpl.getSecondPropertyValue();
+			
+			if (message == NEW_BROKER_ADDED_MESSAGE){
+				url = "URL:" + brokerURLFirstPart + brokerName + brokerURLSecondPart + location;
+			}
+			else{
+				url = "";
+			}
+			
+			status = true;
+			
+			map.setAttribute("status", status);
+			map.setAttribute("message", message);
+			map.setAttribute("url", url);
+			
+			map.addAttribute(brokerEntitiesList);
+			map.addAttribute(ent);
+			
+			return "AddBroker";
+		}
+		
+		//when parameter is updateBroker, check if the entered broker currently exists
+		//update exists broker with user-input details
+		if(ent != null){
+			
+			if(request.getParameter("brokerLocation2") == ""){
+				String ruleBookTeamName = ent.getParameter("rulebookTeamName");
+				String brokerName = ent.getParameter("brokerName");
+				String location = ent.getParameter("brokerLocation");
+				String brokerType = ent.getParameter("btype");
+				Integer brokerEntityId = Integer.parseInt(ent.getParameter("brokerEntityId"));
+				Integer brokerGroupId = Integer.parseInt(ent.getParameter("brokerGroupId"));
+				String ruleBookTeamNameTracker = ent.getParameter("ruleBookTeamNameTracker");
+				
+				//Form message string using update method
+				String message = brokerDAO.updateBroker(ruleBookTeamName, brokerName, location, brokerType,
+						brokerEntityId, brokerGroupId, ruleBookTeamNameTracker);
+				ent.setAttribute("message", message);
+			}
+			
+			//Otherwise add  new location to an existing broker record
+			else{
+				String ruleBookTeamName = ent.getParameter("rulebookTeamName");
+				String brokerType = ent.getParameter("btype");
+				Integer brokerEntityId = Integer.parseInt(request.getParameter("brokerEntityId"));
+				String newLocation = ent.getParameter("brokerlocation2");
+				
+				String message2 = brokerDAO.addBrokerlocation(ruleBookTeamName, brokerType, brokerEntityId,
+						newLocation);
+				ent.setAttribute("message2", message2);
+			}
+			map.addAttribute(brokerEntitiesList);
+			map.addAttribute(ent);
+			
+			return "EditBroker";
+		}
+	}
+	
+
