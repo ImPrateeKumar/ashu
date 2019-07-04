@@ -1,0 +1,32 @@
+package com.tmk.hibernate.dao;
+
+import java.util.List;
+
+import com.tmk.hibernate.annotations.BrokerEntity;
+import com.tmk.hibernate.annotations.BrokerGroup;
+
+/**
+ * Data Access Object Interface.
+ * 
+ * @author Muhammed Islam
+ * 
+ */
+public interface BrokerDAO {
+
+	public BrokerGroup findByRuleBookTeamName(String rbTeamName);
+
+	public List<BrokerGroup> findByLocation(String location);
+
+	public BrokerEntity findByBrokerEntityName(String name);
+
+	public List<BrokerGroup> getBrokers(String brokerName, String brokerLocation);
+
+	public String addBroker(String rbTeamName, String bName, String location, String biba);
+
+	public String addBrokerLocation(String ruleBookTeamName, String brokerType, Integer brokerEntityId,
+			String location);
+
+	public String updateBroker(String rbTeamName, String bName, String location, String biba, Integer entityId,
+			Integer groupID, String rbTeamNameTracker);
+
+}
