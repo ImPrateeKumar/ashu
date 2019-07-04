@@ -1,0 +1,21 @@
+package com.tmk.hibernate.constants;
+
+/**
+ * BIBA Admin Page commonly used constants.
+ * 
+ * @author muhammed.islam
+ */
+public final class CommonConstants {
+
+	public static final String BIBA_STRING = "BIBA";
+	public static final String BIBA = "D0650594-C11C-4BA2-8A1B-F3397FED25E9";
+	public static final String NON_BIBA = "2D5A8BB4-0B71-4542-8C96-F9A98CE5589E";
+	public static final String NEW_BROKER_ADDED_MESSAGE = " New Broker Added To Table";
+	public static final String BROKER_NAME_OR_RB_TEAM_NAME_ALREADY_EXIST_MESSAGE = " Broker Name &/Or Rulebook Team Name Already Exist In DB. \n New Location Added To Broker.";
+	public static final String RULEBOOK_TEAM_NAME_ALREADY_EXISTS_MESSAGE = " Rulebook Team Name Already Exists";
+	public static final String BROKER_LOCATION_ADDED_MESSAGE = " New Location Added To An Existing Broker";
+	public static final String BROKER_LOCATION_OR_RB_TEAM_NAME_ALREADY_EXIST_MESSAGE = " Broker Location &/Or Rulebook Team Name Already Exist";
+	public static final String BROKER_SUCCESSFULLY_UPDATED_MESSAGE = " Broker Successfully Updated";
+	public static final String LOCATION_ALREADY_EXISTS_FOR_BROKER = " Entered Location Already Corresponds To An Existing Broker";
+
+}
