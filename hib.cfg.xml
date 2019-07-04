@@ -1,0 +1,18 @@
+<!DOCTYPE hibernate-configuration PUBLIC
+        "-//Hibernate/Hibernate Configuration DTD//EN"
+        "http://hibernate.sourceforge.net/hibernate-configuration-3.0.dtd">
+
+<hibernate-configuration>
+
+	<session-factory>
+		<property name="hibernate.connection.driver_class"></property>
+		<property name="hibernate.connection.url"></property>
+		<property name="hibernate.dialect"></property>
+		<property name="show_sql"></property>
+		<property name="format_sql"></property>
+		<property name="hbm2ddl.auto"></property>
+		<mapping class="com.tmk.hibernate.annotations.BrokerEntity" />
+		<mapping class="com.tmk.hibernate.annotations.BrokerGroup" />
+	</session-factory>
+
+</hibernate-configuration>
