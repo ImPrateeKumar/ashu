@@ -1,0 +1,150 @@
+package com.ntt.bo;
+
+public class CommonBo {
+
+	private String searchLocation;
+
+	private String searchEntityName;
+
+	private String brokerName;
+
+	private String brokerlocation;
+
+	private String btype;
+
+	private String rulebookTeamName;
+
+	private String brokerLocation;
+
+	private Integer brokerEntityId;
+
+	private Integer brokerGroupId;
+
+	private String ruleBookTeamNameTracker;
+
+	private String brokerlocation2;
+	
+	private String showBrokerPage;
+	
+	private String addBroker;
+	
+	private String updateBroker;
+	
+	
+	
+	
+
+	public String getShowBrokerPage() {
+		return showBrokerPage;
+	}
+
+	public void setShowBrokerPage(String showBrokerPage) {
+		this.showBrokerPage = showBrokerPage;
+	}
+
+	public String getAddBroker() {
+		return addBroker;
+	}
+
+	public void setAddBroker(String addBroker) {
+		this.addBroker = addBroker;
+	}
+
+	public String getUpdateBroker() {
+		return updateBroker;
+	}
+
+	public void setUpdateBroker(String updateBroker) {
+		this.updateBroker = updateBroker;
+	}
+
+	public String getSearchLocation() {
+		return searchLocation;
+	}
+
+	public void setSearchLocation(String searchLocation) {
+		this.searchLocation = searchLocation;
+	}
+
+	public String getSearchEntityName() {
+		return searchEntityName;
+	}
+
+	public void setSearchEntityName(String searchEntityName) {
+		this.searchEntityName = searchEntityName;
+	}
+
+	public String getBrokerName() {
+		return brokerName;
+	}
+
+	public void setBrokerName(String brokerName) {
+		this.brokerName = brokerName;
+	}
+
+	public String getBrokerlocation() {
+		return brokerlocation;
+	}
+
+	public void setBrokerlocation(String brokerlocation) {
+		this.brokerlocation = brokerlocation;
+	}
+
+	public String getBtype() {
+		return btype;
+	}
+
+	public void setBtype(String btype) {
+		this.btype = btype;
+	}
+
+	public String getRulebookTeamName() {
+		return rulebookTeamName;
+	}
+
+	public void setRulebookTeamName(String rulebookTeamName) {
+		this.rulebookTeamName = rulebookTeamName;
+	}
+
+	public String getBrokerLocation() {
+		return brokerLocation;
+	}
+
+	public void setBrokerLocation(String brokerLocation) {
+		this.brokerLocation = brokerLocation;
+	}
+
+	public Integer getBrokerEntityId() {
+		return brokerEntityId;
+	}
+
+	public void setBrokerEntityId(Integer brokerEntityId) {
+		this.brokerEntityId = brokerEntityId;
+	}
+
+	public Integer getBrokerGroupId() {
+		return brokerGroupId;
+	}
+
+	public void setBrokerGroupId(Integer brokerGroupId) {
+		this.brokerGroupId = brokerGroupId;
+	}
+
+	public String getRuleBookTeamNameTracker() {
+		return ruleBookTeamNameTracker;
+	}
+
+	public void setRuleBookTeamNameTracker(String ruleBookTeamNameTracker) {
+		this.ruleBookTeamNameTracker = ruleBookTeamNameTracker;
+	}
+
+	public String getBrokerlocation2() {
+		return brokerlocation2;
+	}
+
+	public void setBrokerlocation2(String brokerlocation2) {
+		this.brokerlocation2 = brokerlocation2;
+	}
+	
+	
+}
